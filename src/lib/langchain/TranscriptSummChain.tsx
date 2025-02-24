@@ -45,14 +45,8 @@ export const createTaskExtractionChain = () => {
 
   const model = createGeminiTextModel(0.1);
 
-  return RunnableSequence.from([
-    {
-      transcript: (input: { transcript: string }) => input.transcript,
-    },
-    PROMPT_TEMPLATES.taskExtraction,
-    model,
-    taskParser,
-  ]);
+  // TODO: Define Runnable Sequence for task extraction
+  return RunnableSequence.from();
 };
 
 // Research Chain for a single task
@@ -196,7 +190,8 @@ export async function processTranscript(transcript: string) {
 
     // 1. Extract tasks
     const taskChain = createTaskExtractionChain();
-    const tasks = await taskChain.invoke({ transcript },
+    // TODO: Add missing chain parameter
+    const tasks = await taskChain.invoke({  },
       { callbacks: [langfuseHandler] }
     );
     console.log('Extracted tasks:', tasks);
@@ -220,8 +215,9 @@ export async function processTranscript(transcript: string) {
     console.log('Research completed:', researchResults);
 
     // 3. Generate email using all research results
-    const emailChain = createEmailChain();
-    const email = await emailChain.invoke({
+    // TODO: Create and Invoke correct generation chain
+    const emailChain = 
+    const email = await .invoke({
       tasks: JSON.stringify(tasks, null, 2),
       research: JSON.stringify(researchResults, null, 2),
       docLinks: researchResults
