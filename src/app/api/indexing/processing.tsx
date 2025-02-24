@@ -153,7 +153,7 @@ export class DocumentProcessor {
     batchSize: number = 50
   ): Promise<void> {
     const maxRetries = 10;
-    const retryDelay = 8000; // 5 seconds
+    const retryDelay = 10000;
 
     for (let i = 0; i < chunks.length; i += batchSize) {
       const batch = chunks.slice(i, i + batchSize);

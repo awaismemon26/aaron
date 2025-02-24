@@ -52,7 +52,7 @@ const cleanDocumentId = (id: string): string => {
     .join(' ');
 };
 
-const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
+export const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
   useEffect(() => {
     console.log('DocumentList documents:', documents);
   }, [documents]);
@@ -146,4 +146,18 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
   );
 };
 
-export default DocumentList;
+
+// Optional loading state component
+export const DocumentListSkeleton: React.FC = () => (
+  <div className="bg-white rounded-lg shadow-md p-6 mt-8">
+    <div className="flex items-center justify-between mb-4">
+      <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
+      <div className="h-5 w-32 bg-gray-200 rounded animate-pulse" />
+    </div>
+    <div className="space-y-4">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="h-16 bg-gray-100 rounded animate-pulse" />
+      ))}
+    </div>
+  </div>
+);

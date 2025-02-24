@@ -39,6 +39,16 @@ poerschmann-ce-intern-firebase-adminsdk-laexk-33fb4db8dc.json
 # vercel
 .vercel
 
+.env.local
+
+# terraform
+.terraform/
+.terraform.*
+terraform.tfstate
+terraform.tfstate.*
+*.tfvars
+
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -43,7 +43,7 @@ export const createTaskExtractionChain = () => {
     description: z.string(),
   })));
 
-  const model = createGeminiTextModel(0.2);
+  const model = createGeminiTextModel(0.1);
 
   return RunnableSequence.from([
     {
@@ -71,7 +71,7 @@ export const createResearchChain = () => {
   }));
 
   const vectorSearch = new VectorSearchUtil();
-  const model = createGeminiTextModel(1);
+  const model = createGeminiTextModel(1.0);
 
   // Format document chunks with source information
   const formatDocumentContext = (chunks: DocumentChunk[]): string => {
@@ -93,8 +93,8 @@ ${chunk.content}
       const searchResponse = await vectorSearch.performSearch(
         task.description,
         {
-          limit: 10,
-          threshold: 0.9
+          limit: 5,
+          threshold: 0.6
         }
       );
 
@@ -102,8 +102,7 @@ ${chunk.content}
         throw new Error(`Vector search failed: ${searchResponse.error}`);
       }
 
-      console.log('Found resources for task:', task.description);
-      console.log('Number of relevant documents:', searchResponse.results.length);
+      console.log('Found resources for task:', task.description, 'Number of relevant documents:', searchResponse.results.length);
 
       // Format search results into DocumentChunks with URLs
       const documentChunks: DocumentChunk[] = searchResponse.results.map(result => ({
@@ -176,7 +175,7 @@ ${chunk.content}
 
 // Email Generation Chain
 export const createEmailChain = () => {
-  const model = createGeminiTextModel(1.5);
+  const model = createGeminiTextModel(1.0);
   const emailPrompt = PROMPT_TEMPLATES.emailGeneration;
 
   return RunnableSequence.from([

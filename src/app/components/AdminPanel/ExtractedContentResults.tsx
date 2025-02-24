@@ -31,10 +31,33 @@ const ExtractedContentResults: React.FC<ExtractedContentResultsProps> = ({
         );
     };
 
+    const handleIndexAll = () => {
+        const successfulContents = contents.filter(
+            content => content.status === 'success' && !isIndexing[content.url]
+        );
+
+        Promise.all(
+            successfulContents.map(content => onIndex?.(content))
+        ).catch(error => {
+            console.error('Error indexing contents:', error);
+        });
+    };
+
     return (
         <div className="bg-white rounded-lg shadow-md p-6 mt-8">
+
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Extracted Content</h2>
+                {contents.length > 0 && contents.some(c => c.status === 'success') && (
+                    <button
+                        onClick={handleIndexAll}
+                        disabled={Object.keys(isIndexing).length > 0}
+                        className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                    >
+                        <Database className="w-4 h-4" />
+                        {Object.keys(isIndexing).length > 0 ? 'Indexing...' : 'Index All'}
+                    </button>
+                )}
             </div>
 
             {isLoading ? (
@@ -80,8 +103,8 @@ const ExtractedContentResults: React.FC<ExtractedContentResultsProps> = ({
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${content.status === 'success'
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-red-100 text-red-800'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-red-100 text-red-800'
                                         }`}>
                                         {content.status}
                                     </span>

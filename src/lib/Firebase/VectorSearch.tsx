@@ -20,8 +20,8 @@ export interface SearchResult {
 }
 
 export interface SearchOptions {
-  limit?: number;
-  threshold?: number;
+  limit: number;
+  threshold: number;
 }
 
 export interface SearchResponse {
@@ -72,7 +72,7 @@ export class VectorSearchUtil {
   /**
    * Perform vector search with error handling
    */
-  async performSearch(query: string, options: SearchOptions = {}): Promise<SearchResponse> {
+  async performSearch(query: string, options: SearchOptions): Promise<SearchResponse> {
     try {
       // Validate query
       if (!query.trim()) {
@@ -86,40 +86,48 @@ export class VectorSearchUtil {
       const queryEmbeddings = await this.embeddingService.getEmbeddings([query]);
       const queryVector = queryEmbeddings[0];
 
-      console.log("Embedded query vector created...");
+      // console.log("Embedded query vector created...");
 
       // Configure vector search query
       const vectorQuery: VectorQuery = this.chunksCollection.findNearest({
         queryVector: queryVector,
         vectorField: 'embedding',
-        limit: options.limit || 10,
-        distanceMeasure: 'COSINE',
-        distanceThreshold: options.threshold,
+        limit: options.limit,
+        distanceMeasure: 'EUCLIDEAN',
+        // distanceThreshold: options.threshold,
         distanceResultField: 'vector_distance'
       });
+
+      // console.log("Running Vector Query: ", vectorQuery)
 
       // Execute search
       const vectorQuerySnapshot: VectorQuerySnapshot = await vectorQuery.get();
 
-      vectorQuerySnapshot.forEach((doc) => {
-        console.log(doc.id, ' Distance: ', doc.get('vector_distance'));
+      // Filter for unique whole docs
+      const uniqueDocsMap = new Map<string, any>();
+      vectorQuerySnapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const distance = doc.get('vector_distance');
+        
+        if (!uniqueDocsMap.has(data.documentId) || 
+            distance < uniqueDocsMap.get(data.documentId).distance) {
+          uniqueDocsMap.set(data.documentId, { doc, distance });
+        }
       });
 
       // Process results and fetch document details
-      const resultsPromises = vectorQuerySnapshot.docs.map(async (doc) => {
+      const resultsPromises = Array.from(uniqueDocsMap.values()).map(async ({ doc }) => {
         const data = doc.data();
         const documentDetails = await this.fetchDocumentDetails(data.documentId);
 
-        // console.log('DocId:' + data.documentId + ' Score:' + doc.get('vector_distance'))
-
         return {
           documentId: data.documentId,
-          content: data.content,
-          url: documentDetails?.url || '', // Add URL from original document
+          content: documentDetails?.content,
+          url: documentDetails?.url || '',
           score: doc.get('vector_distance'),
           metadata: {
             ...data.metadata,
-            documentUrl: documentDetails?.url, // Also include in metadata if needed
+            documentUrl: documentDetails?.url,
           },
         };
       });
@@ -145,7 +153,7 @@ export class VectorSearchUtil {
    */
   async batchSearch(
     queries: string[],
-    options: SearchOptions = {}
+    options: SearchOptions
   ): Promise<SearchResponse[]> {
     return Promise.all(
       queries.map(query => this.performSearch(query, options))
@@ -157,7 +165,7 @@ export class VectorSearchUtil {
    */
   async searchWithContext(
     query: string,
-    options: SearchOptions = {}
+    options: SearchOptions
   ): Promise<SearchResponse> {
     const response = await this.performSearch(query, options);
 
