@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PromptTemplate } from "@langchain/core/prompts";
 import { geminiService } from '@/lib/google-ai-studio/gemini';
 
+
+// TODO: Initiate Langfuse
+
+
 // Create the RAG-aware summary prompt template
 const summaryPrompt = PromptTemplate.fromTemplate(`
 You are a helpful Google Cloud Platform technical expert. Based on the following relevant documentation excerpts,
@@ -31,6 +35,7 @@ interface SearchResult {
   score: number;
 }
 
+// TODO: Integrate Langfuse tracing of generation input and output
 export async function POST(request: NextRequest) {
   try {
     const { query, context } = await request.json();
