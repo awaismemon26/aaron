@@ -11,6 +11,8 @@ interface GenerationOptions extends Partial<GenerationConfig> {
     temperature?: number;
     topP?: number;
     responseSchema?: object;
+    maxRetries?: number;
+    retryDelay?: number;
 }
 
 export class GeminiService {
@@ -125,6 +127,54 @@ export class GeminiService {
             console.error('Error in Gemini content generation:', error);
             throw error instanceof Error ? error : new Error('Failed to generate content');
         }
+    }
+
+    async generateWithRetry(
+        prompt: string,
+        options?: GenerationOptions
+    ): Promise<string> {
+        const maxRetries = options?.maxRetries ?? 10;
+        const baseDelay = options?.retryDelay ?? 5000;
+        const maxDelay = 30000;
+        let lastError: Error | undefined;
+
+        // Logistic function parameters
+        const k = 1;  // Steepness of the curve
+        const midpoint = 7;  // Point of maximum growth
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                if (attempt >= maxRetries - 3) {
+                    // Increase temperature for last few attempts to prevent recitation
+                    const increasedTempOptions = {
+                        ...options,
+                        temperature: 1.8
+                    };
+                    return await this.generateContent(prompt, increasedTempOptions);
+                }
+                return await this.generateContent(prompt, options);
+            } catch (error) {
+                lastError = error instanceof Error ? error : new Error('Unknown error');
+                console.warn(`Attempt ${attempt}/${maxRetries} failed:`, lastError.message);
+                
+                // const exponentialDelay = retryDelay * Math.pow(2, attempt - 1);
+
+                if (attempt < maxRetries) {
+                    // Calculate logistic backoff
+                    const x = attempt - midpoint;
+                    const logisticValue = 1 / (1 + Math.exp(-k * x));
+                    const delay = Math.min(
+                        baseDelay + (maxDelay - baseDelay) * logisticValue,
+                        maxDelay
+                    );
+                    
+                    console.debug(`Retry delay: ${Math.round(delay)}ms`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        throw new Error(`Failed after ${maxRetries} attempts. Last error: ${lastError?.message}`);
     }
 
     async generateStructuredContent<T>(

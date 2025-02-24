@@ -18,6 +18,7 @@ resource "google_project_service" "required_apis" {
     "artifactregistry.googleapis.com",
     "run.googleapis.com",
     "firestore.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
     "aiplatform.googleapis.com",
     "cloudbuild.googleapis.com",
     "orgpolicy.googleapis.com"

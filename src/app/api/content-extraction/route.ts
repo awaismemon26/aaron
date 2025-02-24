@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Get structured response from Gemini
-        const extractionResult = await geminiService.generateContent(formattedPrompt);
+        const extractionResult = await geminiService.generateWithRetry(formattedPrompt);
 
         // console.log('Extraction Result:', extractionResult);
 
