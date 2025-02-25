@@ -2,6 +2,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PromptTemplate } from "@langchain/core/prompts";
 import { geminiService } from '@/lib/google-ai-studio/gemini';
+import { Langfuse } from "langfuse";
+
+const langfuse = new Langfuse({ 
+  publicKey: process.env.LF_PUBLIC_KEY,
+  secretKey: process.env.LF_SECRET_KEY,
+  baseUrl: "https://cloud.langfuse.com"});
 
 // Create the RAG-aware summary prompt template
 const summaryPrompt = PromptTemplate.fromTemplate(`
@@ -35,6 +41,10 @@ export async function POST(request: NextRequest) {
   try {
     const { query, context } = await request.json();
 
+    const trace = langfuse.trace({
+      name: "search-triggered",
+    });
+
     if (!query) {
       return NextResponse.json({
         error: 'Query is required'
@@ -62,11 +72,22 @@ export async function POST(request: NextRequest) {
       question: query,
       context: formattedContext,
     });
+    
+    // Start Langfuse Generation Tracking
+    const generation = trace.generation({
+      name: "search-summary",
+      input: formattedPrompt,
+    });
 
     // Call the model
     console.log('Sending prompt to Vertex AI:', formattedPrompt);
     const result = await geminiService.generateContent(formattedPrompt);
     console.log('Received result from Vertex AI:', result);
+
+
+    generation.end({
+      output: result,
+    });
 
     return NextResponse.json({ 
       summary: result,
