@@ -7,9 +7,9 @@ const LandingPage = () => {
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">CE Intern</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Aaron the intern</h1>
           <p className="text-xl text-gray-600">
-            Your AI assistant for technical follow-up emails
+            Your AI assistant for technical research
           </p>
         </div>
 
